@@ -248,6 +248,31 @@
             .chart-container { height: 250px; }
             h1 { font-size: 1.5rem; }
         }
+
+               /* --- НОВЫЕ СТИЛИ ДЛЯ КНОПКИ НАЗАД --- */
+        .nav-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #7f8c8d;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #e9ecef;
+            color: #333;
+            border-color: #999;
+        }
+        
     </style>
 </head>
 <body>
@@ -431,6 +456,7 @@
         renderQuestion();
     }
 
+     // --- ОБНОВЛЕННАЯ ФУНКЦИЯ ОТРИСОВКИ ВОПРОСА ---
     function renderQuestion() {
         const q = questions[currentQuestionIndex];
         const container = document.getElementById('question-container');
@@ -440,23 +466,52 @@
         const progress = ((currentQuestionIndex) / questions.length) * 100;
         document.getElementById('progress-bar').style.width = `${progress}%`;
 
+        // Проверяем, был ли уже дан ответ на этот вопрос (чтобы подсветить)
+        const savedScore = answers[q.id];
+
+        // Готовим кнопку "Назад" (показываем её только если это не 1-й вопрос)
+        let backBtnHtml = '';
+        if (currentQuestionIndex > 0) {
+            backBtnHtml = `
+                <div class="nav-actions">
+                    <button class="btn-back" onclick="prevQuestion()">← Вернуться к прошлому вопросу</button>
+                </div>
+            `;
+        }
+
         container.innerHTML = `
             <div class="category-badge">${catName}</div>
             <div class="question-text">${q.text}</div>
             
             <div class="options">
-                <button class="option-btn" onclick="selectOption(1)">1</button>
-                <button class="option-btn" onclick="selectOption(2)">2</button>
-                <button class="option-btn" onclick="selectOption(3)">3</button>
-                <button class="option-btn" onclick="selectOption(4)">4</button>
-                <button class="option-btn" onclick="selectOption(5)">5</button>
+                <button class="option-btn" id="opt-1" onclick="selectOption(1)">1</button>
+                <button class="option-btn" id="opt-2" onclick="selectOption(2)">2</button>
+                <button class="option-btn" id="opt-3" onclick="selectOption(3)">3</button>
+                <button class="option-btn" id="opt-4" onclick="selectOption(4)">4</button>
+                <button class="option-btn" id="opt-5" onclick="selectOption(5)">5</button>
             </div>
             <div class="scale-labels">
                 <span>Совершенно не согласен</span>
                 <span>Полностью согласен</span>
             </div>
+            ${backBtnHtml}
         `;
+
+        // Если ответ уже был записан, подсвечиваем кнопку
+        if (savedScore) {
+            const btn = document.getElementById(`opt-${savedScore}`);
+            if (btn) btn.classList.add('selected');
+        }
     }
+
+    // --- НОВАЯ ФУНКЦИЯ ВОЗВРАТА НАЗАД ---
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--; // Уменьшаем индекс вопроса
+            renderQuestion();       // Перерисовываем экран
+        }
+    }
+
 
     function selectOption(score) {
         const qId = questions[currentQuestionIndex].id;
@@ -627,6 +682,7 @@
 
 </body>
 </html>
+
 
 
 
