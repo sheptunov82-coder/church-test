@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализ здоровья церкви</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #50E3C2;
+            --accent-color: #F5A623;
+            --text-color: #333;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        h1 { margin-bottom: 10px; font-size: 1.8rem; }
+        h2 { font-size: 1.4rem; margin-bottom: 20px; }
+
+        .hidden { display: none !important; }
+
+        /* Start Screen */
+        .intro-text {
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+            transform: translateY(-2px);
+        }
+
+        /* Quiz Screen */
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            height: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background: #eef2f5;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option-btn {
+            flex: 1;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            min-width: 45px;
+        }
+
+        .option-btn:hover, .option-btn.selected {
+            border-color: var(--primary-color);
+            background-color: #e3f2fd;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: -20px;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        /* Results Screen */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table th {
+            background-color: #f8f9fa;
+        }
+
+        .status-strong { color: var(--success-color); font-weight: bold; }
+        .status-growth { color: var(--warning-color); font-weight: bold; }
+        .status-attention { color: var(--danger-color); font-weight: bold; }
+
+        .summary-box {
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .user-meta {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Mobile adaptation */
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .question-text { font-size: 1.1rem; }
+            .option-btn { font-size: 1rem; padding: 10px; }
+            .chart-container { height: 250px; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="start-screen">
+        <h1>Анализ жизни церкви</h1>
+        <div class="intro-text">
+            <p>Приветствуем вас! Этот опрос поможет нам понять, чем живет наша церковь сегодня.</p>
+            <p><strong>Это полностью анонимно.</strong> Мы не собираем имена или email-адреса. Данные о возрасте и поле нужны только для общей статистики, чтобы понимать потребности разных групп.</p>
+            <p>Тест основан на лучших принципах развития здоровой Целеустремлённой церкви.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="age">Ваш возраст *</label>
+            <select id="age">
+                <option value="" disabled selected>Выберите вариант</option>
+                <option value="do-18">До 18 лет</option>
+                <option value="18-25">18 - 25 лет</option>
+                <option value="26-35">26 - 35 лет</option>
+                <option value="36-50">36 - 50 лет</option>
+                <option value="51-65">51 - 65 лет</option>
+                <option value="65+">Старше 65 лет</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="gender">Ваш пол *</label>
+            <select id="gender">
+                <option value="" disabled selected>Выберите вариант</option>
+                <option value="male">Мужской</option>
+                <option value="female">Женский</option>
+                <option value="prefer-not">Предпочитаю не указывать</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="startQuiz()">Начать тест</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div id="question-container" class="question-card">
+            </div>
+    </div>
+
+    <div id="results-screen" class="hidden">
+        <h2>Ваш профиль восприятия церкви</h2>
+        <div class="user-meta" id="result-meta"></div>
+
+        <div class="chart-container">
+            <canvas id="radarChart"></canvas>
+        </div>
+
+        <div class="summary-box">
+            <h3>Общий вывод</h3>
+            <p id="personalized-feedback">Генерация вывода...</p>
+        </div>
+
+        <table class="results-table" id="results-table">
+            <thead>
+                <tr>
+                    <th>Сфера</th>
+                    <th>Балл</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+
+        <div id="email-section">
+            <p style="text-align: center; color: #666; font-size: 0.9rem;">
+                Нажмите кнопку ниже, чтобы анонимно отправить результаты руководству церкви для анализа.
+            </p>
+            <div class="spinner" id="spinner"></div>
+            <button class="btn btn-primary" id="send-btn" onclick="sendResults()">Отправить результаты анонимно</button>
+            <p id="send-message" style="text-align: center; margin-top: 10px; font-weight: bold;"></p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- КОНФИГУРАЦИЯ ---
+    
+    // ДАННЫЕ ВСТАВЛЕНЫ:
+    const EMAILJS_PUBLIC_KEY = "YOd4jIAX87za_qiBs";
+    const EMAILJS_SERVICE_ID = "service_6eixzo8";
+    const EMAILJS_TEMPLATE_ID = "template_42qf665";
+
+    // Инициализация EmailJS
+    (function(){
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+    })();
+
+    // --- ДАННЫЕ ВОПРОСОВ ---
+    // 7 Категорий
+    // Шкала 1-5
+    
+    const categories = [
+        { id: 'worship', name: 'Поклонение & Вдохновение', desc: 'Насколько наши собрания вдохновляют и соединяют с Богом.' },
+        { id: 'fellowship', name: 'Общение & Отношения', desc: 'Теплота отношений, забота и любовь в общине.' },
+        { id: 'discipleship', name: 'Ученичество & Духовность', desc: 'Личный духовный рост и применение Библии.' },
+        { id: 'ministry', name: 'Служение & Дары', desc: 'Использование талантов и волонтерство.' },
+        { id: 'evangelism', name: 'Евангелизм & Гостеприимство', desc: 'Открытость для новых людей и благовестие.' },
+        { id: 'leadership', name: 'Лидерство & Структура', desc: 'Ясность видения и организация процессов.' },
+        { id: 'groups', name: 'Малые группы & Обучение', desc: 'Глубокое общение в малом кругу.' }
+    ];
+
+    const questions = [
+        // Поклонение
+        { id: 1, cat: 'worship', text: 'Я чувствую присутствие Бога на наших богослужениях.' },
+        { id: 2, cat: 'worship', text: 'Проповеди в нашей церкви актуальны и применимы к моей повседневной жизни.' },
+        { id: 3, cat: 'worship', text: 'Музыкальная часть помогает мне настроиться на молитву и хвалу.' },
+        { id: 4, cat: 'worship', text: 'Атмосфера собрания вдохновляет меня на предстоящую неделю.' },
+
+        // Общение
+        { id: 5, cat: 'fellowship', text: 'В церкви есть люди, с которыми я могу поделиться личными проблемами.' },
+        { id: 6, cat: 'fellowship', text: 'В нашей церкви много смеха и радости во время общения.' },
+        { id: 7, cat: 'fellowship', text: 'Я чувствую, что меня здесь любят и принимают таким, какой я есть.' },
+        { id: 8, cat: 'fellowship', text: 'Мы эффективно и мирно разрешаем конфликты, если они возникают.' },
+
+        // Ученичество
+        { id: 9, cat: 'discipleship', text: 'Церковь помогает мне расти духовно и лучше понимать Библию.' },
+        { id: 10, cat: 'discipleship', text: 'Я регулярно молюсь и читаю Писание самостоятельно.' },
+        { id: 11, cat: 'discipleship', text: 'Моя вера реально меняет мое поведение на работе и дома.' },
+        { id: 12, cat: 'discipleship', text: 'Я понимаю, какие следующие шаги мне нужно сделать в моем духовном развитии.' },
+
+        // Служение
+        { id: 13, cat: 'ministry', text: 'Я знаю свои духовные дары и таланты.' },
+        { id: 14, cat: 'ministry', text: 'В церкви я занимаюсь тем служением, которое мне действительно нравится и получается.' },
+        { id: 15, cat: 'ministry', text: 'Лидеры поощряют инициативу волонтеров, а не просто заполняют "дыры".' },
+        { id: 16, cat: 'ministry', text: 'Я чувствую, что мой вклад в жизнь церкви ценят.' },
+
+        // Евангелизм
+        { id: 17, cat: 'evangelism', text: 'Наша церковь дружелюбна и понятна для людей, которые заходят впервые.' },
+        { id: 18, cat: 'evangelism', text: 'Я не стесняюсь приглашать своих друзей или знакомых на наши собрания.' },
+        { id: 19, cat: 'evangelism', text: 'Мы, как церковь, служим нуждам нашего района/города.' },
+        { id: 20, cat: 'evangelism', text: 'У меня есть неверующие друзья, за которых я регулярно молюсь.' },
+
+        // Лидерство
+        { id: 21, cat: 'leadership', text: 'Мне понятны цели и видение нашей церкви (для чего мы существуем).' },
+        { id: 22, cat: 'leadership', text: 'Пастор и лидеры дают возможность другим людям расти и брать ответственность.' },
+        { id: 23, cat: 'leadership', text: 'Организационные вопросы в церкви решаются четко и прозрачно.' },
+        { id: 24, cat: 'leadership', text: 'Лидеры открыты к обратной связи и предложениям.' },
+
+        // Группы
+        { id: 25, cat: 'groups', text: 'Участие в малой группе (домашней группе) важно для меня.' },
+        { id: 26, cat: 'groups', text: 'В малых группах мы обсуждаем реальные жизненные вопросы.' },
+        { id: 27, cat: 'groups', text: 'Малые группы помогают мне чувствовать себя частью семьи.' },
+        { id: 28, cat: 'groups', text: 'Система обучения и наставничества в церкви работает хорошо.' }
+    ];
+
+    // --- СОСТОЯНИЕ ПРИЛОЖЕНИЯ ---
+    let currentQuestionIndex = 0;
+    let answers = {}; // { questionId: score }
+    let demographics = { age: '', gender: '' };
+    let calculatedResults = {};
+
+    // --- ЛОГИКА ---
+
+    function startQuiz() {
+        const age = document.getElementById('age').value;
+        const gender = document.getElementById('gender').value;
+
+        if (!age || !gender) {
+            alert("Пожалуйста, выберите возраст и пол, чтобы продолжить.");
+            return;
+        }
+
+        demographics.age = age;
+        demographics.gender = gender;
+
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+        const container = document.getElementById('question-container');
+        const catName = categories.find(c => c.id === q.cat).name;
+        
+        // Обновление прогресс-бара
+        const progress = ((currentQuestionIndex) / questions.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
+
+        container.innerHTML = `
+            <div class="category-badge">${catName}</div>
+            <div class="question-text">${q.text}</div>
+            
+            <div class="options">
+                <button class="option-btn" onclick="selectOption(1)">1</button>
+                <button class="option-btn" onclick="selectOption(2)">2</button>
+                <button class="option-btn" onclick="selectOption(3)">3</button>
+                <button class="option-btn" onclick="selectOption(4)">4</button>
+                <button class="option-btn" onclick="selectOption(5)">5</button>
+            </div>
+            <div class="scale-labels">
+                <span>Совершенно не согласен</span>
+                <span>Полностью согласен</span>
+            </div>
+        `;
+    }
+
+    function selectOption(score) {
+        const qId = questions[currentQuestionIndex].id;
+        answers[qId] = score;
+
+        // Визуальный эффект выбора (краткий)
+        const btns = document.querySelectorAll('.option-btn');
+        btns[score-1].classList.add('selected');
+
+        setTimeout(() => {
+            nextQuestion();
+        }, 250);
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            renderQuestion();
+        } else {
+            finishQuiz();
+        }
+    }
+
+    function finishQuiz() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('results-screen').classList.remove('hidden');
+        calculateResults();
+        renderResults();
+    }
+
+    function calculateResults() {
+        categories.forEach(cat => {
+            const catQuestions = questions.filter(q => q.cat === cat.id);
+            let sum = 0;
+            catQuestions.forEach(q => {
+                sum += answers[q.id] || 0;
+            });
+            calculatedResults[cat.id] = (sum / catQuestions.length).toFixed(1);
+        });
+    }
+
+    function getStatus(score) {
+        if (score >= 4.0) return { text: "Сильная сторона", class: "status-strong" };
+        if (score >= 2.5) return { text: "Зона роста", class: "status-growth" };
+        return { text: "Требует внимания", class: "status-attention" };
+    }
+
+    function renderResults() {
+        // Метаданные
+        const ageText = document.getElementById('age').options[document.getElementById('age').selectedIndex].text;
+        const genderText = document.getElementById('gender').options[document.getElementById('gender').selectedIndex].text;
+        document.getElementById('result-meta').innerText = `Возраст: ${ageText} | Пол: ${genderText}`;
+
+        // Таблица
+        const tbody = document.querySelector('#results-table tbody');
+        let scoresArray = [];
+        let labelsArray = [];
+        let maxScore = 0;
+        let minScore = 6;
+        let strongestCat = '';
+        let weakestCat = '';
+
+        categories.forEach(cat => {
+            const score = parseFloat(calculatedResults[cat.id]);
+            const status = getStatus(score);
+            
+            scoresArray.push(score);
+            labelsArray.push(cat.name); // Используем полное имя для графика
+
+            // Для анализа
+            if (score > maxScore) { maxScore = score; strongestCat = cat.name; }
+            if (score < minScore) { minScore = score; weakestCat = cat.name; }
+
+            const row = `
+                <tr>
+                    <td><strong>${cat.name}</strong><br><small style="color:#777">${cat.desc}</small></td>
+                    <td><strong>${score}</strong></td>
+                    <td class="${status.class}">${status.text}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        // График Chart.js
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: categories.map(c => c.name.split(' & ')[0]), // Сокращенные названия для графика
+                datasets: [{
+                    label: 'Ваша оценка здоровья церкви',
+                    data: scoresArray,
+                    backgroundColor: 'rgba(74, 144, 226, 0.2)',
+                    borderColor: 'rgba(74, 144, 226, 1)',
+                    pointBackgroundColor: 'rgba(74, 144, 226, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 5,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Персонализированный вывод
+        const feedbackEl = document.getElementById('personalized-feedback');
+        let feedbackText = `Спасибо за вашу честность! Исходя из ваших ответов, вы особенно цените сферу "<strong>${strongestCat}</strong>" (балл: ${maxScore}). Это отличный ресурс для нашей общины.`;
+        
+        if (minScore < 3.0) {
+            feedbackText += ` В то же время, вы чувствуете дефицит в сфере "<strong>${weakestCat}</strong>" (балл: ${minScore}). Это важный сигнал для лидерской команды.`;
+        } else {
+            feedbackText += ` Ваши ответы показывают достаточно сбалансированную картину, но всегда есть пространство для улучшения в сфере "<strong>${weakestCat}</strong>".`;
+        }
+        
+        feedbackText += " Ваши данные помогут нам стать здоровее и эффективнее.";
+        feedbackEl.innerHTML = feedbackText;
+    }
+
+    function sendResults() {
+        const btn = document.getElementById('send-btn');
+        const spinner = document.getElementById('spinner');
+        const msg = document.getElementById('send-message');
+
+        btn.classList.add('hidden');
+        spinner.style.display = 'block';
+
+        // Подготовка данных для EmailJS
+        // Формируем красивый текст результатов
+        let detailedResults = "";
+        categories.forEach(cat => {
+            detailedResults += `${cat.name}: ${calculatedResults[cat.id]} \n`;
+        });
+
+        const templateParams = {
+            to_email: "sheptunov82@yandex.ru",
+            date: new Date().toLocaleDateString(),
+            age_group: demographics.age,
+            gender: demographics.gender,
+            results_summary: detailedResults,
+            general_feedback: document.getElementById('personalized-feedback').innerText,
+            raw_data: JSON.stringify(answers) 
+        };
+
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+            .then(function(response) {
+                spinner.style.display = 'none';
+                msg.style.color = 'var(--success-color)';
+                msg.innerText = "Спасибо! Ваши анонимные результаты успешно отправлены.";
+            }, function(error) {
+                spinner.style.display = 'none';
+                btn.classList.remove('hidden'); // Вернуть кнопку, чтобы попробовать снова
+                msg.style.color = 'var(--danger-color)';
+                msg.innerText = "Ошибка отправки. Пожалуйста, попробуйте еще раз или сделайте скриншот.";
+                console.error("EmailJS Error:", error);
+            });
+    }
+</script>
+
+</body>
+</html>
