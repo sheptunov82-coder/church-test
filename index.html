@@ -8,8 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
+   
     <style>
         :root {
             --primary-color: #4A90E2;
@@ -360,17 +359,6 @@
 </div>
 
 <script>
-    // --- КОНФИГУРАЦИЯ ---
-    
-    // ДАННЫЕ ВСТАВЛЕНЫ:
-    const EMAILJS_PUBLIC_KEY = "YOd4jIAX87za_qiBs";
-    const EMAILJS_SERVICE_ID = "service_6eixzo8";
-    const EMAILJS_TEMPLATE_ID = "template_42qf665";
-
-    // Инициализация EmailJS
-    (function(){
-        emailjs.init(EMAILJS_PUBLIC_KEY);
-    })();
 
     // --- ДАННЫЕ ВОПРОСОВ ---
     // 7 Категорий
@@ -640,48 +628,59 @@
         feedbackEl.innerHTML = feedbackText;
     }
 
-    function sendResults() {
+ function sendResults() {
         const btn = document.getElementById('send-btn');
         const spinner = document.getElementById('spinner');
         const msg = document.getElementById('send-message');
 
+        // Скрываем кнопку, показываем индикатор загрузки
         btn.classList.add('hidden');
         spinner.style.display = 'block';
+        msg.innerText = ""; 
 
-        // Подготовка данных для EmailJS
-        // Формируем красивый текст результатов
-        let detailedResults = "";
-        categories.forEach(cat => {
-            detailedResults += `${cat.name}: ${calculatedResults[cat.id]} \n`;
-        });
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtEFvvn4N_WZccDjWsyI2PW3IhOhhgzT7KJB-yTVyTAPEoqqUrYneHb9oQ6XtOQuri/exec";
 
-        const templateParams = {
-            to_email: "sheptunov82@yandex.ru",
-            date: new Date().toLocaleDateString(),
-            age_group: demographics.age,
+        // Формируем пакет данных для отправки
+        const dataToSend = {
+            age: demographics.age,
             gender: demographics.gender,
-            results_summary: detailedResults,
-            general_feedback: document.getElementById('personalized-feedback').innerText,
-            raw_data: JSON.stringify(answers) 
+            scores: calculatedResults, // Твои посчитанные баллы по категориям
+            raw: answers               // Сырые ответы на каждый вопрос (чтобы были)
         };
 
-        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-            .then(function(response) {
-                spinner.style.display = 'none';
-                msg.style.color = 'var(--success-color)';
-                msg.innerText = "Спасибо! Ваши анонимные результаты успешно отправлены.";
-            }, function(error) {
-                spinner.style.display = 'none';
-                btn.classList.remove('hidden'); // Вернуть кнопку, чтобы попробовать снова
-                msg.style.color = 'var(--danger-color)';
-                msg.innerText = "Ошибка отправки. Пожалуйста, попробуйте еще раз или сделайте скриншот.";
-                console.error("EmailJS Error:", error);
-            });
+        // Отправляем запрос в Google
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors", // Этот режим нужен, чтобы браузер не ругался на безопасность
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dataToSend)
+        })
+        .then(response => {
+            // Если мы попали сюда, значит запрос улетел успешно
+            spinner.style.display = 'none';
+            msg.style.color = 'var(--success-color)';
+            msg.innerText = "Спасибо! Ваши результаты успешно сохранены в базе.";
+        })
+        .catch(error => {
+            // Если случилась ошибка сети
+            console.error("Ошибка отправки:", error);
+            spinner.style.display = 'none';
+            btn.classList.remove('hidden'); // Возвращаем кнопку, чтобы можно было нажать снова
+            msg.style.color = 'var(--danger-color)';
+            msg.innerText = "Ошибка соединения. Попробуйте еще раз.";
+        });
     }
+
 </script>
 
 </body>
 </html>
+
+
+
+
 
 
 
